@@ -1,0 +1,1842 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Studio Pro · 頻道管理系統</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --purple-900: #26215C; --purple-800: #3C3489; --purple-600: #534AB7;
+  --purple-400: #7F77DD; --purple-200: #AFA9EC; --purple-100: #CDCBF5; --purple-50: #EEEDFE;
+  --teal-800: #085041; --teal-600: #0F6E56; --teal-400: #1D9E75; --teal-50: #E1F5EE;
+  --amber-800: #633806; --amber-600: #854F0B; --amber-400: #EF9F27; --amber-50: #FAEEDA;
+  --red-800: #791F1F; --red-400: #E24B4A; --red-50: #FCEBEB;
+  --gray-900: #1A1A1A; --gray-700: #444; --gray-500: #888; --gray-200: #E5E5E5; --gray-50: #F8F8F8;
+  --bg: #F4F3FC; --surface: #FFFFFF;
+  --font-main: 'DM Sans', 'Noto Sans TC', sans-serif;
+  --radius: 12px; --radius-sm: 8px;
+  --shadow: 0 1px 3px rgba(60,52,137,0.08), 0 4px 16px rgba(60,52,137,0.06);
+  --shadow-md: 0 4px 24px rgba(60,52,137,0.13);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body { font-family: var(--font-main); background: var(--bg); color: var(--gray-900); font-size: 14px; line-height: 1.6; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--purple-200); border-radius: 3px; }
+
+/* ══ LOGIN ════════════════════════════════════════ */
+#login-screen {
+  min-height: 100vh; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; padding: 2rem 1rem;
+  background: linear-gradient(135deg, #F4F3FC 0%, #EEEDFE 100%);
+}
+.login-logo {
+  width: 52px; height: 52px; border-radius: 14px;
+  background: var(--purple-600); display: flex; align-items: center; justify-content: center;
+  margin-bottom: 1.25rem;
+}
+.login-logo svg { width: 26px; height: 26px; }
+.login-title { font-size: 22px; font-weight: 600; color: var(--purple-900); margin-bottom: 4px; }
+.login-sub { font-size: 13px; color: var(--gray-500); margin-bottom: 2rem; }
+.login-section-label {
+  font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--gray-500); margin-bottom: 8px; width: 100%; max-width: 500px; text-align: left;
+}
+.login-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  width: 100%; max-width: 500px; margin-bottom: 1.5rem;
+}
+.login-card {
+  background: var(--surface); border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius); padding: 14px 16px; cursor: pointer;
+  transition: all .18s ease;
+}
+.login-card:hover { border-color: var(--purple-400); box-shadow: var(--shadow-md); transform: translateY(-1px); }
+.login-card.manager-card { grid-column: span 2; display: flex; align-items: center; gap: 14px; }
+.lc-avatar {
+  width: 38px; height: 38px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 600; flex-shrink: 0;
+}
+.lc-label { font-size: 10px; color: var(--gray-500); margin-bottom: 2px; }
+.lc-name { font-size: 13px; font-weight: 600; color: var(--gray-900); }
+.lc-ch { font-size: 11px; color: var(--gray-500); }
+.lc-badge {
+  display: inline-block; font-size: 10px; padding: 2px 8px;
+  border-radius: 20px; margin-top: 5px; font-weight: 500;
+}
+
+/* ══ APP SHELL ════════════════════════════════════ */
+#app { display: none; height: 100vh; flex-direction: column; }
+.topbar {
+  background: var(--surface); border-bottom: 1px solid var(--gray-200);
+  padding: 0 1.25rem; display: flex; align-items: center; gap: 0;
+  height: 52px; flex-shrink: 0; box-shadow: 0 1px 0 rgba(60,52,137,.06);
+  position: relative; z-index: 10;
+}
+.topbar-brand {
+  font-size: 14px; font-weight: 600; color: var(--purple-800);
+  padding-right: 1rem; border-right: 1px solid var(--gray-200); margin-right: 4px;
+  white-space: nowrap; letter-spacing: -.01em;
+}
+.nav-tabs { display: flex; }
+.nav-tab {
+  padding: 0 14px; height: 52px; font-size: 13px; color: var(--gray-500);
+  border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent;
+  font-family: var(--font-main); font-weight: 500; white-space: nowrap;
+  transition: color .15s; display: flex; align-items: center;
+}
+.nav-tab:hover { color: var(--gray-900); }
+.nav-tab.active { color: var(--purple-600); border-bottom-color: var(--purple-400); }
+.topbar-user { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.user-avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600;
+}
+.user-name { font-size: 12px; color: var(--gray-500); }
+.btn-logout {
+  font-size: 11px; padding: 5px 12px; border-radius: 20px;
+  border: 1px solid var(--gray-200); background: none; color: var(--gray-500);
+  cursor: pointer; font-family: var(--font-main); transition: all .15s;
+}
+.btn-logout:hover { background: var(--gray-50); color: var(--gray-700); }
+
+/* ── content area ── */
+.content-area { flex: 1; overflow-y: auto; padding: 1.25rem; }
+
+/* ── tab panels ── */
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ── stat grid ── */
+.stat-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 1.25rem; }
+.stat-card { background: var(--surface); border-radius: var(--radius); padding: 1rem 1.125rem; box-shadow: var(--shadow); }
+.stat-label { font-size: 11px; color: var(--gray-500); margin-bottom: 5px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; }
+.stat-val { font-size: 26px; font-weight: 600; color: var(--gray-900); line-height: 1; }
+.stat-sub { font-size: 11px; color: var(--gray-500); margin-top: 4px; }
+
+/* ── cards ── */
+.card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.card-head { padding: 12px 16px; border-bottom: 1px solid var(--gray-200); display: flex; align-items: center; justify-content: space-between; }
+.card-title { font-size: 13px; font-weight: 600; color: var(--gray-900); }
+.card-body { padding: 12px 16px; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+
+/* ── badges ── */
+.badge { font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 600; white-space: nowrap; }
+.b-purple { background: var(--purple-50); color: var(--purple-800); }
+.b-teal { background: var(--teal-50); color: var(--teal-800); }
+.b-amber { background: var(--amber-50); color: var(--amber-800); }
+.b-red { background: var(--red-50); color: var(--red-800); }
+.b-gray { background: #F1EFE8; color: #444441; }
+.b-green { background: #EAF3DE; color: #27500A; }
+
+/* ── rows ── */
+.data-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 0; border-bottom: 1px solid var(--gray-200); font-size: 13px;
+}
+.data-row:last-child { border-bottom: none; }
+.dot-status { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.ds-green { background: #1D9E75; }
+.ds-amber { background: #EF9F27; }
+.ds-red { background: #E24B4A; }
+
+/* ── pipeline ── */
+.pipeline { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; }
+.p-col { flex: 0 0 130px; }
+.p-head {
+  font-size: 10px; font-weight: 700; padding: 6px 8px; border-radius: 6px 6px 0 0;
+  margin-bottom: 5px; letter-spacing: .05em; text-transform: uppercase;
+}
+.p-card {
+  border: 1px solid var(--gray-200); border-radius: var(--radius-sm);
+  padding: 8px 9px; margin-bottom: 5px; background: var(--surface);
+  font-size: 11px; cursor: default; transition: box-shadow .15s;
+}
+.p-card:hover { box-shadow: var(--shadow); }
+.p-card.warn { border-color: #F09595; background: var(--red-50); }
+.p-ct { font-weight: 600; color: var(--gray-900); line-height: 1.35; margin-bottom: 3px; }
+.p-cm { color: var(--gray-500); font-size: 10px; }
+.p-card.warn .p-ct, .p-card.warn .p-cm { color: var(--red-800); }
+
+/* ── studio grid ── */
+.studio-grid { display: grid; grid-template-columns: 58px repeat(5,1fr); gap: 2px; font-size: 11px; }
+.sg-h { text-align: center; padding: 5px 2px; color: var(--gray-500); font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: .06em; }
+.sg-t { color: var(--gray-500); display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; font-size: 10px; font-weight: 500; }
+.sg-s {
+  border-radius: 5px; padding: 4px; min-height: 34px; border: 1px solid var(--gray-200);
+  background: var(--gray-50); font-size: 10px; display: flex; align-items: center;
+  justify-content: center; text-align: center; color: var(--gray-500); line-height: 1.3;
+}
+.sg-s.today { border-color: var(--purple-400); }
+.sg-s.booked { font-weight: 600; }
+.sg-s.mine { border: 2px solid var(--purple-400); }
+.sg-s.locked { opacity: .35; }
+
+/* ── forms ── */
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.form-group { margin-bottom: 10px; }
+.form-label { font-size: 11px; color: var(--gray-500); font-weight: 600; margin-bottom: 5px; display: block; letter-spacing: .04em; text-transform: uppercase; }
+input, select, textarea {
+  font-family: var(--font-main); font-size: 13px; width: 100%; padding: 8px 11px;
+  border: 1px solid var(--gray-200); border-radius: var(--radius-sm);
+  background: var(--surface); color: var(--gray-900); outline: none;
+  transition: border-color .15s;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--purple-400); }
+textarea { resize: vertical; min-height: 64px; line-height: 1.5; }
+
+/* ── buttons ── */
+.btn-primary {
+  background: var(--purple-600); color: #fff; border: none; border-radius: var(--radius-sm);
+  padding: 7px 16px; font-size: 12px; font-weight: 600; cursor: pointer;
+  font-family: var(--font-main); transition: background .15s; letter-spacing: .02em;
+}
+.btn-primary:hover { background: var(--purple-800); }
+.btn-sec {
+  background: none; color: var(--gray-500); border: 1px solid var(--gray-200);
+  border-radius: var(--radius-sm); padding: 6px 12px; font-size: 12px;
+  cursor: pointer; font-family: var(--font-main); transition: all .15s;
+}
+.btn-sec:hover { background: var(--gray-50); color: var(--gray-700); }
+.btn-sm { padding: 4px 10px; font-size: 11px; }
+
+/* ── alerts ── */
+.alert { padding: 9px 13px; border-radius: var(--radius-sm); font-size: 12px; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 8px; }
+.alert-icon { width: 14px; height: 14px; flex-shrink: 0; margin-top: 1px; }
+.alert-warn { background: var(--amber-50); color: var(--amber-800); border-left: 3px solid var(--amber-400); border-radius: 0; }
+.alert-danger { background: var(--red-50); color: var(--red-800); border-left: 3px solid var(--red-400); border-radius: 0; }
+.alert-info { background: var(--purple-50); color: var(--purple-800); border-left: 3px solid var(--purple-400); border-radius: 0; }
+
+/* ── progress bar ── */
+.pbar-wrap { height: 5px; background: var(--gray-200); border-radius: 3px; overflow: hidden; }
+.pbar { height: 100%; border-radius: 3px; background: var(--purple-400); }
+
+/* ── training ── */
+.training-item { padding: 10px 0; border-bottom: 1px solid var(--gray-200); }
+.training-item:last-child { border-bottom: none; }
+.ti-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 5px; }
+.ti-date { font-size: 10px; color: var(--gray-500); }
+.ti-title { font-size: 13px; font-weight: 600; color: var(--gray-900); margin-bottom: 4px; }
+.ti-body { font-size: 12px; color: var(--gray-500); line-height: 1.6; }
+
+/* ── modal ── */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(26,26,26,.45);
+  z-index: 100; align-items: center; justify-content: center; padding: 1rem;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface); border-radius: var(--radius); padding: 20px;
+  width: 100%; max-width: 460px; box-shadow: var(--shadow-md);
+  max-height: 90vh; overflow-y: auto;
+}
+.modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.modal-title { font-size: 15px; font-weight: 600; color: var(--gray-900); }
+.modal-close { background: none; border: none; font-size: 20px; color: var(--gray-500); cursor: pointer; line-height: 1; }
+.notice {
+  font-size: 12px; color: var(--purple-800); padding: 8px 12px;
+  background: var(--purple-50); border-left: 3px solid var(--purple-400);
+  margin-bottom: 14px; border-radius: 0; line-height: 1.5;
+}
+
+/* ── anchor stat ── */
+.anchor-stat-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 12px; }
+.a-stat { background: var(--gray-50); border-radius: var(--radius-sm); padding: 10px 12px; border: 1px solid var(--gray-200); }
+.a-stat-lbl { font-size: 10px; color: var(--gray-500); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+.a-stat-val { font-size: 22px; font-weight: 600; color: var(--gray-900); }
+
+/* ── email config ── */
+.email-config-box {
+  background: var(--purple-50); border: 1px solid var(--purple-200);
+  border-radius: var(--radius); padding: 14px 16px; margin-bottom: 14px;
+}
+.email-config-box .ec-title { font-size: 13px; font-weight: 600; color: var(--purple-800); margin-bottom: 8px; }
+.email-config-box .ec-note { font-size: 11px; color: var(--purple-600); line-height: 1.5; margin-top: 8px; }
+
+/* ── toast ── */
+.toast {
+  position: fixed; bottom: 24px; right: 24px; background: var(--gray-900);
+  color: #fff; padding: 10px 18px; border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 500; z-index: 999;
+  transform: translateY(60px); opacity: 0; transition: all .25s ease;
+  pointer-events: none;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+
+/* ── misc ── */
+.avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+.full-card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; margin-bottom: 12px; }
+.section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--gray-500); margin-bottom: 10px; }
+.divider { height: 1px; background: var(--gray-200); margin: 16px 0; }
+.empty-state { text-align: center; padding: 2rem; color: var(--gray-500); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-logo">
+    <svg viewBox="0 0 26 26" fill="none" stroke="#fff" stroke-width="1.8">
+      <rect x="3" y="3" width="20" height="20" rx="4"/>
+      <path d="M9 13h8M13 9v8"/>
+    </svg>
+  </div>
+  <div class="login-title">Studio Pro</div>
+  <div class="login-sub">頻道製作管理系統 · 請選擇你的身份</div>
+
+  <div class="login-section-label">管理者</div>
+  <div style="width:100%;max-width:500px;margin-bottom:1rem;">
+    <div class="login-card manager-card" onclick="login(-1)">
+      <div class="lc-avatar" style="background:#EEEDFE;color:#3C3489;font-size:16px;">管</div>
+      <div>
+        <div class="lc-label">MANAGER</div>
+        <div class="lc-name">管理者</div>
+        <div class="lc-ch">查看及管理全部10個頻道</div>
+      </div>
+      <div style="margin-left:auto;"><span class="lc-badge" style="background:#EEEDFE;color:#3C3489;">全部權限</span></div>
+    </div>
+  </div>
+
+  <div class="login-section-label">頻道主（只能看到自己的數據）</div>
+  <div class="login-grid" id="anchor-login-grid"></div>
+</div>
+
+<!-- ══ APP ════════════════════════════════════════════ -->
+<div id="app">
+  <div class="topbar">
+    <span class="topbar-brand" id="tb-brand">Studio Pro</span>
+    <div class="nav-tabs" id="nav-tabs"></div>
+    <div class="topbar-user">
+      <div class="user-avatar" id="tb-avatar">管</div>
+      <span class="user-name" id="tb-name">管理者</span>
+      <button class="btn-logout" onclick="logout()">切換身份</button>
+    </div>
+  </div>
+  <div class="content-area" id="content-area"></div>
+</div>
+
+<!-- ══ MODALS ══════════════════════════════════════════ -->
+<div class="modal-overlay" id="video-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="video-modal-title">新增視頻</span>
+      <button class="modal-close" onclick="closeModal('video-modal')">×</button>
+    </div>
+    <div class="form-group"><label class="form-label">視頻標題</label><input type="text" id="vm-title" placeholder="例：星河觀察室第12期"></div>
+    <div class="form-row">
+      <div><label class="form-label">頻道主</label><input type="text" id="vm-anchor" readonly></div>
+      <div><label class="form-label">預計發布日期</label><input type="date" id="vm-date"></div>
+    </div>
+    <div class="form-group"><label class="form-label">選題方向</label><textarea id="vm-desc" placeholder="簡述視頻方向和目標受眾..."></textarea></div>
+    <div class="form-row">
+      <div><label class="form-label">腳本連結</label><input type="text" id="vm-script" placeholder="Google Doc 連結"></div>
+      <div><label class="form-label">當前階段</label>
+        <select id="vm-stage">
+          <option>選題</option><option>腳本撰寫</option><option>審核中</option>
+          <option>拍攝</option><option>剪輯</option><option>待發布</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:14px;">
+      <button class="btn-primary" onclick="saveVideo()">確認儲存</button>
+      <button class="btn-sec" onclick="closeModal('video-modal')">取消</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="studio-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">申請 Studio 預約</span>
+      <button class="modal-close" onclick="closeModal('studio-modal')">×</button>
+    </div>
+    <div class="notice">最少提前 1 天申請。如需取消，請即時通知相關人員。</div>
+    <div class="form-row">
+      <div><label class="form-label">拍攝日期</label><input type="date" id="sm-date"></div>
+      <div><label class="form-label">時段</label>
+        <select id="sm-slot"><option>09:00–11:00</option><option>11:00–13:00</option><option>14:00–16:00</option><option>16:00–18:00</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div><label class="form-label">頻道主</label><input type="text" id="sm-anchor" readonly></div>
+      <div><label class="form-label">拍攝類型</label>
+        <select id="sm-type"><option>單人拍攝</option><option>雙人訪談</option><option>多人拍攝</option><option>戶外拍攝</option><option>其他</option></select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">備注（視頻標題／特殊需求）</label><textarea id="sm-note" placeholder="例：需要綠幕 / 收音設備..."></textarea></div>
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button class="btn-primary" onclick="saveStudio()">提交申請</button>
+      <button class="btn-sec" onclick="closeModal('studio-modal')">取消</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="topic-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">新增備案選題</span>
+      <button class="modal-close" onclick="closeModal('topic-modal')">×</button>
+    </div>
+    <div class="form-group"><label class="form-label">備案選題</label><input type="text" id="tm-title" placeholder="例：宇宙起源大揭秘"></div>
+    <div class="form-group"><label class="form-label">選題方向說明</label><textarea id="tm-desc" placeholder="說明視頻方向..."></textarea></div>
+    <div class="form-row">
+      <div><label class="form-label">優先順序</label>
+        <select id="tm-pri"><option>★★★ 高</option><option>★★ 中</option><option>★ 低</option></select>
+      </div>
+      <div><label class="form-label">頻道主</label><input type="text" id="tm-anchor" readonly></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button class="btn-primary" onclick="saveTopic()">確認儲存</button>
+      <button class="btn-sec" onclick="closeModal('topic-modal')">取消</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="email-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">設定郵件提醒</span>
+      <button class="modal-close" onclick="closeModal('email-modal')">×</button>
+    </div>
+    <div class="email-config-box">
+      <div class="ec-title">透過 EmailJS 發送提醒郵件（免費）</div>
+      <div class="form-group" style="margin-bottom:8px;"><label class="form-label">EmailJS Service ID</label><input type="text" id="ej-service" placeholder="service_xxxxxxx"></div>
+      <div class="form-group" style="margin-bottom:8px;"><label class="form-label">EmailJS Template ID</label><input type="text" id="ej-template" placeholder="template_xxxxxxx"></div>
+      <div class="form-group" style="margin-bottom:0;"><label class="form-label">EmailJS Public Key</label><input type="text" id="ej-pubkey" placeholder="xxxxxxxxxxxxxxx"></div>
+      <div class="ec-note">前往 <strong>emailjs.com</strong> 免費註冊，建立 Service 和 Template 後填入以上資訊。Template 變數：{{to_email}}、{{to_name}}、{{subject}}、{{message}}</div>
+    </div>
+    <div class="form-group"><label class="form-label">管理者 Email</label><input type="email" id="ej-mgr-email" placeholder="your@email.com"></div>
+    <div class="form-group"><label class="form-label">提前幾天提醒（播出日期前）</label><input type="number" id="ej-days" value="2" min="1" max="7"></div>
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button class="btn-primary" onclick="saveEmailConfig()">儲存設定</button>
+      <button class="btn-sec" onclick="testEmail()">發測試郵件</button>
+      <button class="btn-sec" onclick="closeModal('email-modal')">取消</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="training-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">新增培訓記錄</span>
+      <button class="modal-close" onclick="closeModal('training-modal')">×</button>
+    </div>
+    <div class="form-row">
+      <div><label class="form-label">培訓日期</label><input type="date" id="trm-date"></div>
+      <div><label class="form-label">培訓類型</label>
+        <select id="trm-type"><option>形象培訓</option><option>聲音培訓</option><option>內容方向</option><option>其他</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div><label class="form-label">主持人</label><input type="text" id="trm-host" placeholder="Bill / Karen / 其他"></div>
+      <div><label class="form-label">培訓對象</label><input type="text" id="trm-target" placeholder="姓名 或 全體頻道主"></div>
+    </div>
+    <div class="form-group"><label class="form-label">培訓主題</label><input type="text" id="trm-topic" placeholder="例：鏡頭前眼神交流技巧"></div>
+    <div class="form-group"><label class="form-label">培訓要點</label><textarea id="trm-notes" placeholder="1. 要點一&#10;2. 要點二&#10;3. 要點三"></textarea></div>
+    <div class="form-group"><label class="form-label">下次拍攝應用方向</label><textarea id="trm-apply" placeholder="具體說明如何應用..."></textarea></div>
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button class="btn-primary" onclick="saveTraining()">保存記錄</button>
+      <button class="btn-sec" onclick="closeModal('training-modal')">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEW MODALS v4 -->
+
+<!-- 新增/編輯頻道主 -->
+<div class="modal-overlay" id="anchor-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="anchor-modal-title">新增頻道主</span>
+      <button class="modal-close" onclick="closeModal('anchor-modal')">×</button>
+    </div>
+    <div class="form-row">
+      <div><label class="form-label">頻道主姓名</label><input type="text" id="am-name" placeholder="例：王小明"></div>
+      <div><label class="form-label">頻道名稱</label><input type="text" id="am-ch" placeholder="例：科技新視界"></div>
+    </div>
+    <div class="form-row">
+      <div><label class="form-label">頻道方向</label><input type="text" id="am-dir" placeholder="例：科技資訊"></div>
+      <div><label class="form-label">Email</label><input type="email" id="am-email" placeholder="example@gmail.com"></div>
+    </div>
+    <div id="am-warning" style="display:none;" class="alert alert-danger">刪除後該頻道主所有數據將永久清除，無法復原。</div>
+    <div style="display:flex;gap:8px;margin-top:14px;">
+      <button class="btn-primary" id="am-save-btn" onclick="saveAnchor()">確認新增</button>
+      <button class="btn-sec" id="am-delete-btn" style="display:none;color:var(--red-800);border-color:var(--red-400);" onclick="confirmDeleteAnchor()">刪除此頻道主</button>
+      <button class="btn-sec" onclick="closeModal('anchor-modal')">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 刪除確認 -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal" style="max-width:360px;">
+    <div class="modal-head">
+      <span class="modal-title" style="color:var(--red-800);">確認刪除</span>
+      <button class="modal-close" onclick="closeModal('confirm-modal')">×</button>
+    </div>
+    <p id="confirm-msg" style="font-size:14px;color:var(--gray-700);margin-bottom:16px;line-height:1.6;"></p>
+    <div style="display:flex;gap:8px;">
+      <button class="btn-primary" style="background:var(--red-800);" id="confirm-ok-btn">確認刪除</button>
+      <button class="btn-sec" onclick="closeModal('confirm-modal')">取消</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// 數據層：所有數據存在 localStorage，按頻道主隔離
+// ══════════════════════════════════════════════════════
+const ANCHORS = [
+  {name:'林若辰',ch:'星河觀察室',dir:'天文科普'},
+  {name:'周映安',ch:'雲端說書人',dir:'書籍解讀'},
+  {name:'陳芷晴',ch:'山海慢生活',dir:'生活旅遊'},
+  {name:'許墨言',ch:'時光雜貨鋪',dir:'生活美學'},
+  {name:'高以寧',ch:'靈感研究所',dir:'設計靈感'},
+  {name:'蘇遠舟',ch:'風物旅行誌',dir:'旅行紀錄'},
+  {name:'梁知夏',ch:'半夜聊天室',dir:'情感聊天'},
+  {name:'鄭予白',ch:'城市微光台',dir:'城市人文'},
+  {name:'唐青禾',ch:'古今奇聞錄',dir:'歷史奇聞'},
+  {name:'沈沐瑤',ch:'每日一點甜',dir:'美食甜點'},
+];
+
+const COLORS = [
+  {bg:'#EEEDFE',tc:'#3C3489',sg:'#AFA9EC'},
+  {bg:'#E1F5EE',tc:'#085041',sg:'#5DCAA5'},
+  {bg:'#FAEEDA',tc:'#633806',sg:'#FAC775'},
+  {bg:'#E6F1FB',tc:'#0C447C',sg:'#85B7EB'},
+  {bg:'#EAF3DE',tc:'#27500A',sg:'#97C459'},
+  {bg:'#FAECE7',tc:'#712B13',sg:'#F0997B'},
+  {bg:'#FBEAF0',tc:'#72243E',sg:'#ED93B1'},
+  {bg:'#F1EFE8',tc:'#444441',sg:'#B4B2A9'},
+  {bg:'#FAEEDA',tc:'#412402',sg:'#EF9F27'},
+  {bg:'#FCEBEB',tc:'#791F1F',sg:'#F09595'},
+];
+
+const STAGE_BADGE = {
+  '選題':'b-gray','腳本撰寫':'b-purple','審核中':'b-purple',
+  '拍攝':'b-amber','剪輯':'b-green','待發布':'b-teal','已發布':'b-teal'
+};
+
+const STAGE_COLORS = {
+  '選題':['#F1EFE8','#444441'],
+  '腳本撰寫':['#EEEDFE','#3C3489'],
+  '審核中':['#E6F1FB','#0C447C'],
+  '拍攝':['#FAEEDA','#633806'],
+  '剪輯':['#EAF3DE','#27500A'],
+  '待發布':['#E1F5EE','#085041'],
+};
+
+// ── Storage helpers ──────────────────────────────────
+function storageKey(type, anchor) {
+  return anchor ? `sp_${type}_${anchor}` : `sp_${type}`;
+}
+function getData(type, anchor) {
+  try { return JSON.parse(localStorage.getItem(storageKey(type, anchor))) || []; }
+  catch { return []; }
+}
+function setData(type, anchor, data) {
+  localStorage.setItem(storageKey(type, anchor), JSON.stringify(data));
+}
+function getGlobal(type) {
+  try { return JSON.parse(localStorage.getItem(`sp_global_${type}`)) || {}; }
+  catch { return {}; }
+}
+function setGlobal(type, data) {
+  localStorage.setItem(`sp_global_${type}`, JSON.stringify(data));
+}
+
+// ── Email config ─────────────────────────────────────
+function getEmailConfig() {
+  try { return JSON.parse(localStorage.getItem('sp_email_config')) || {}; }
+  catch { return {}; }
+}
+function setEmailConfig(cfg) {
+  localStorage.setItem('sp_email_config', JSON.stringify(cfg));
+}
+
+// ── Seed demo data if first time ─────────────────────
+function seedIfEmpty() {
+  const seeded = localStorage.getItem('sp_seeded');
+  if (seeded) return;
+
+  const seedVideos = {
+    '林若辰':[
+      {id:'v1',title:'星河第11期·月球探索',stage:'待發布',date:'2025-05-03',script:'',desc:''},
+      {id:'v2',title:'星河第12期·太陽風暴',stage:'剪輯',date:'2025-05-07',script:'',desc:''},
+      {id:'v3',title:'星河第13期·宇宙膨脹',stage:'腳本撰寫',date:'2025-05-14',script:'',desc:''},
+    ],
+    '周映安':[
+      {id:'v1',title:'說書第9期·窮查理寶典',stage:'待發布',date:'2025-05-02',script:'',desc:''},
+      {id:'v2',title:'說書第10期·原子習慣',stage:'拍攝',date:'2025-05-08',script:'',desc:''},
+    ],
+    '陳芷晴':[
+      {id:'v1',title:'山海第7期·花蓮太魯閣',stage:'剪輯',date:'2025-05-04',script:'',desc:''},
+      {id:'v2',title:'山海第8期·阿里山雲海',stage:'腳本撰寫',date:'2025-05-10',script:'',desc:''},
+    ],
+    '高以寧':[
+      {id:'v1',title:'靈感第8期·包浩斯',stage:'待發布',date:'2025-05-05',script:'',desc:''},
+      {id:'v2',title:'靈感第9期·色彩心理',stage:'拍攝',date:'2025-05-09',script:'',desc:''},
+    ],
+    '沈沐瑤':[
+      {id:'v1',title:'甜點第12期·可頌',stage:'待發布',date:'2025-05-02',script:'',desc:''},
+      {id:'v2',title:'甜點第13期·馬卡龍',stage:'剪輯',date:'2025-05-05',script:'',desc:''},
+    ],
+  };
+
+  const seedTopics = {
+    '林若辰':[
+      {id:'t1',title:'宇宙起源大揭秘',desc:'天文科普入門主題',priority:'★★★ 高',status:'備案中'},
+      {id:'t2',title:'黑洞到底長什麼樣',desc:'視覺化解釋',priority:'★★ 中',status:'備案中'},
+      {id:'t3',title:'火星移民可行嗎',desc:'科學預測與現實',priority:'★ 低',status:'備案中'},
+    ],
+    '周映安':[
+      {id:'t1',title:'拆解《原子習慣》',desc:'行為改變科學',priority:'★★★ 高',status:'備案中'},
+      {id:'t2',title:'讀懂《思考快與慢》',desc:'認知心理學',priority:'★★ 中',status:'備案中'},
+      {id:'t3',title:'《被討厭的勇氣》精華',desc:'阿德勒哲學',priority:'★ 低',status:'備案中'},
+    ],
+    '陳芷晴':[
+      {id:'t1',title:'東北角海岸秘境',desc:'台灣在地旅遊',priority:'★★★ 高',status:'備案中'},
+      {id:'t2',title:'宜蘭農場慢旅行',desc:'生態農業體驗',priority:'★★ 中',status:'備案中'},
+    ],
+    '許墨言':[],
+    '高以寧':[
+      {id:'t1',title:'設計師的色彩課',desc:'色彩心理應用',priority:'★★★ 高',status:'備案中'},
+      {id:'t2',title:'字體背後的故事',desc:'排版美學',priority:'★★ 中',status:'備案中'},
+      {id:'t3',title:'創意思維訓練法',desc:'設計師工具箱',priority:'★ 低',status:'備案中'},
+    ],
+    '蘇遠舟':[
+      {id:'t1',title:'京都秋日特輯',desc:'日本深度旅遊',priority:'★★★ 高',status:'備案中'},
+      {id:'t2',title:'首爾街頭美食地圖',desc:'韓國飲食文化',priority:'★★ 中',status:'備案中'},
+      {id:'t3',title:'沖繩慢旅三天',desc:'離島旅遊',priority:'★ 低',status:'備案中'},
+    ],
+    '梁知夏':[],
+    '鄭予白':[
+      {id:'t1',title:'台北老街記憶',desc:'城市文化挖掘',priority:'★★★ 高',status:'備案中'},
+      {id:'t2',title:'城市裡的獨立書店',desc:'閱讀文化',priority:'★★ 中',status:'備案中'},
+      {id:'t3',title:'夜市攤主的故事',desc:'市井人物誌',priority:'★ 低',status:'備案中'},
+    ],
+    '唐青禾':[
+      {id:'t1',title:'秦始皇陵未解之謎',desc:'考古歷史',priority:'★★★ 高',status:'備案中'},
+      {id:'t2',title:'清朝皇宮秘聞',desc:'宮廷歷史',priority:'★★ 中',status:'備案中'},
+    ],
+    '沈沐瑤':[
+      {id:'t1',title:'法式馬卡龍做法',desc:'法式甜點教學',priority:'★★★ 高',status:'備案中'},
+      {id:'t2',title:'提拉米蘇零失敗',desc:'義式甜點',priority:'★★ 中',status:'備案中'},
+      {id:'t3',title:'焦糖布丁教學',desc:'經典甜點',priority:'★ 低',status:'備案中'},
+    ],
+  };
+
+  const seedTraining = [
+    {id:'tr1',date:'2025-04-28',type:'形象培訓',host:'Bill',target:'林若辰、陳芷晴、高以寧',topic:'鏡頭前眼神交流技巧',notes:'1. 看鏡頭上方3cm\n2. 說話節奏放慢20%\n3. 避免眨眼過快',apply:'三位頻道主下場拍攝重點練習'},
+    {id:'tr2',date:'2025-04-22',type:'聲音培訓',host:'Bill',target:'周映安、許墨言、蘇遠舟',topic:'聲音共鳴與咬字清晰度',notes:'1. 開口前深呼吸\n2. 語氣詞輕讀\n3. 重點詞加重但不誇張',apply:'錄音後回聽對比上次'},
+    {id:'tr3',date:'2025-04-15',type:'內容方向',host:'Karen',target:'全體頻道主',topic:'Q2內容方向調整會議',notes:'1. 前30秒必須拋出核心問題\n2. 增加實操內容\n3. 結尾加觀眾互動引導',apply:'所有頻道主按新框架調整腳本'},
+    {id:'tr4',date:'2025-04-08',type:'形象培訓',host:'Bill',target:'梁知夏、鄭予白、唐青禾、沈沐瑤',topic:'服裝搭配與鏡頭色彩',notes:'1. 避免穿條紋格子\n2. 深色背景配淺色上衣\n3. 配飾不宜過多',apply:'各自準備2套備用服裝'},
+  ];
+
+  const seedStudio = [
+    {id:'s1',anchor:'林若辰',date:'2025-05-01',slot:'09:00–11:00',type:'單人拍攝',note:'',anchorIdx:0},
+    {id:'s2',anchor:'周映安',date:'2025-05-01',slot:'14:00–16:00',type:'單人拍攝',note:'',anchorIdx:1},
+    {id:'s3',anchor:'陳芷晴',date:'2025-05-01',slot:'16:00–18:00',type:'戶外拍攝',note:'',anchorIdx:2},
+    {id:'s4',anchor:'高以寧',date:'2025-05-02',slot:'09:00–11:00',type:'單人拍攝',note:'',anchorIdx:4},
+  ];
+
+  ANCHORS.forEach((a, i) => {
+    const vids = seedVideos[a.name] || [];
+    setData('videos', a.name, vids);
+    const tops = seedTopics[a.name] || [];
+    setData('topics', a.name, tops);
+  });
+  setGlobal('training', seedTraining);
+  setGlobal('studio', seedStudio);
+  localStorage.setItem('sp_seeded', '1');
+}
+
+// ══════════════════════════════════════════════════════
+// Auth & Navigation
+// ══════════════════════════════════════════════════════
+let CUR_ROLE = null;
+let CUR_ANCHOR_IDX = -1;
+
+function login(idx) {
+  CUR_ANCHOR_IDX = idx;
+  CUR_ROLE = idx === -1 ? 'manager' : 'anchor';
+  document.getElementById('login-screen').style.display = 'none';
+  const app = document.getElementById('app');
+  app.style.display = 'flex';
+
+  if (CUR_ROLE === 'manager') {
+    const tb = document.getElementById('tb-brand');
+    tb.textContent = 'Studio Pro · 管理者';
+    const av = document.getElementById('tb-avatar');
+    av.textContent = '管'; av.style.background = '#EEEDFE'; av.style.color = '#3C3489';
+    document.getElementById('tb-name').textContent = '管理者 · 全部頻道';
+    buildManagerNav();
+    renderTab('dashboard');
+  } else {
+    const a = ANCHORS[idx]; const c = COLORS[idx];
+    document.getElementById('tb-brand').textContent = a.ch;
+    const av = document.getElementById('tb-avatar');
+    av.textContent = a.name[0]; av.style.background = c.bg; av.style.color = c.tc;
+    document.getElementById('tb-name').textContent = a.name + ' · ' + a.ch;
+    buildAnchorNav();
+    renderTab('my-overview');
+  }
+}
+
+function logout() {
+  CUR_ROLE = null; CUR_ANCHOR_IDX = -1;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('nav-tabs').innerHTML = '';
+}
+
+function buildManagerNav() {
+  const tabs = [
+    {id:'dashboard',label:'總覽'},
+    {id:'pipeline',label:'製作進度'},
+    {id:'studio',label:'Studio預約'},
+    {id:'anchors',label:'頻道主管理'},
+    {id:'training',label:'培訓記錄'},
+    {id:'email-settings',label:'郵件提醒'},
+  ];
+  renderNavTabs(tabs, 'dashboard');
+}
+
+function buildAnchorNav() {
+  const tabs = [
+    {id:'my-overview',label:'我的總覽'},
+    {id:'my-videos',label:'我的視頻'},
+    {id:'my-studio',label:'Studio預約'},
+    {id:'my-training',label:'培訓記錄'},
+  ];
+  renderNavTabs(tabs, 'my-overview');
+}
+
+function renderNavTabs(tabs, activeId) {
+  const nav = document.getElementById('nav-tabs');
+  nav.innerHTML = tabs.map(t =>
+    `<button class="nav-tab${t.id===activeId?' active':''}" onclick="renderTab('${t.id}',this)">${t.label}</button>`
+  ).join('');
+}
+
+function renderTab(tabId, btn) {
+  if (btn) {
+    document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  const ca = document.getElementById('content-area');
+  ca.innerHTML = '';
+  const fn = TAB_RENDERERS[tabId];
+  if (fn) fn(ca);
+}
+
+// ══════════════════════════════════════════════════════
+// TAB RENDERERS
+// ══════════════════════════════════════════════════════
+const TAB_RENDERERS = {
+  'dashboard': renderDashboard,
+  'pipeline': renderPipeline,
+  'studio': renderStudio,
+  'anchors': renderAnchors,
+  'training': renderTraining,
+  'email-settings': renderEmailSettings,
+  'my-overview': renderMyOverview,
+  'my-videos': renderMyVideos,
+  'my-studio': renderMyStudio,
+  'my-training': renderMyTraining,
+};
+
+// ── helpers ──────────────────────────────────────────
+function el(tag, attrs, ...children) {
+  const e = document.createElement(tag);
+  if (attrs) Object.entries(attrs).forEach(([k,v]) => {
+    if (k === 'class') e.className = v;
+    else if (k === 'style') e.style.cssText = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v);
+  });
+  children.forEach(c => {
+    if (c == null) return;
+    e.append(typeof c === 'string' ? document.createTextNode(c) : c);
+  });
+  return e;
+}
+function div(cls, ...children) { return el('div', {class:cls}, ...children); }
+function badge(text, cls) { return el('span', {class:`badge ${cls}`}, text); }
+function btn(text, cls, onClick) { return el('button', {class:cls, onClick}, text); }
+function allVideos() { return ANCHORS.flatMap((a,i) => getData('videos', a.name).map(v => ({...v, anchor:a.name, ch:a.ch, anchorIdx:i}))); }
+function anchorTopics(name) { return getData('topics', name).filter(t => t.status === '備案中'); }
+function fmtDate(d) { if (!d) return '–'; try { const p = d.split('-'); return `${parseInt(p[1])}/${parseInt(p[2])}`; } catch(e) { return '–'; } }
+function isOverdue(date) { return date && new Date(date) < new Date(new Date().toDateString()); }
+function isSoon(date) { if (!date) return false; const d = new Date(date); const now = new Date(); return d >= now && d <= new Date(now.getTime() + 3*86400000); }
+
+// ── DASHBOARD ──────────────────────────────────────
+function renderDashboard(ca) {
+  const vids = allVideos();
+  const reserveCounts = ANCHORS.map(a => anchorTopics(a.name).length);
+  const needAlert = reserveCounts.filter(c => c < 3).length;
+  const upcoming = vids.filter(v => v.stage !== '已發布').sort((a,b) => (a.date||'').localeCompare(b.date||'')).slice(0,5);
+
+  ca.appendChild(el('div', {class:'stat-grid'},
+    statCard('活躍頻道', '10', '已啟動運營'),
+    statCard('製作中視頻', vids.filter(v=>v.stage!=='已發布').length, '各階段合計', '#534AB7'),
+    statCard('本週待發布', vids.filter(v=>v.stage==='待發布').length, '已完成剪輯', '#085041'),
+    statCard('備案需補充', needAlert, '低於3條的頻道', needAlert>0?'#A32D2D':'#085041'),
+  ));
+
+  if (needAlert > 0) {
+    const alertDiv = el('div', {class:'alert alert-warn', style:'margin-bottom:12px;'});
+    alertDiv.innerHTML = `<strong>備案不足提醒：</strong>${ANCHORS.filter((_,i)=>reserveCounts[i]<3).map((a,_,arr)=>{const idx=ANCHORS.indexOf(a); return `${a.name}（${anchorTopics(a.name).length}條）`;}).join('、')} 備案不足3條，請盡快補充。`;
+    ca.appendChild(alertDiv);
+  }
+
+  const row = div('two-col');
+
+  const vCard = div('card');
+  vCard.appendChild(el('div', {class:'card-head'}, el('span', {class:'card-title'}, '即將發布'), badge('本週', 'b-purple')));
+  const vBody = div('card-body');
+  upcoming.forEach(v => {
+    const isDue = isOverdue(v.date); const soon = isSoon(v.date);
+    const r = div('data-row');
+    const dotCls = isDue ? 'ds-red' : soon ? 'ds-amber' : 'ds-green';
+    r.appendChild(el('div', {class:`dot-status ${dotCls}`}));
+    r.appendChild(el('div', {style:'flex:1;font-size:13px;color:var(--gray-900);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'}, v.title));
+    r.appendChild(badge(v.stage, STAGE_BADGE[v.stage]||'b-gray'));
+    r.appendChild(el('div', {style:'font-size:11px;color:var(--gray-500);width:36px;text-align:right;flex-shrink:0;'}, fmtDate(v.date)));
+    vBody.appendChild(r);
+  });
+  if (!upcoming.length) vBody.appendChild(div('empty-state', '暫無視頻'));
+  vCard.appendChild(vBody);
+  row.appendChild(vCard);
+
+  const rCard = div('card');
+  rCard.appendChild(el('div', {class:'card-head'}, el('span', {class:'card-title'}, '備案狀態')));
+  const rBody = div('card-body');
+  ANCHORS.forEach((a, i) => {
+    const cnt = reserveCounts[i];
+    const pct = Math.min(cnt / 4 * 100, 100);
+    const c = COLORS[i];
+    const r = div('data-row');
+    const av = el('div', {class:'avatar', style:`background:${c.bg};color:${c.tc};font-size:10px;`}, a.name[0]);
+    r.appendChild(av);
+    const info = el('div', {style:'flex:1;min-width:0;'});
+    info.appendChild(el('div', {style:'font-size:12px;font-weight:500;color:var(--gray-900);'}, a.name));
+    info.appendChild(el('div', {style:'font-size:10px;color:var(--gray-500);'}, a.ch));
+    r.appendChild(info);
+    const pw = el('div', {class:'pbar-wrap', style:'width:60px;'});
+    pw.appendChild(el('div', {class:'pbar', style:`width:${pct}%;background:${cnt<2?'#E24B4A':cnt<3?'#EF9F27':'#7F77DD'};`}));
+    r.appendChild(pw);
+    r.appendChild(el('span', {style:'font-size:11px;color:var(--gray-500);width:20px;text-align:right;'}, cnt+''));
+    r.appendChild(badge(cnt===0?'天窗':cnt<3?'需補充':'充足', cnt===0?'b-red':cnt<3?'b-amber':'b-teal'));
+    rBody.appendChild(r);
+  });
+  rCard.appendChild(rBody);
+  row.appendChild(rCard);
+  ca.appendChild(row);
+
+  const studioBox = div('full-card');
+  studioBox.appendChild(el('div', {class:'card-head'}, el('span', {class:'card-title'}, '今日 Studio 預約')));
+  const sb = div('card-body', {style:'display:flex;gap:8px;flex-wrap:wrap;'});
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todayBookings = getData('studio', null).length ? getData('studio', null) : getGlobal('studio');
+  const todayList = (Array.isArray(todayBookings) ? todayBookings : []).filter(b => b.date === todayStr);
+  if (todayList.length === 0) {
+    sb.appendChild(el('div', {class:'empty-state', style:'width:100%;padding:1rem 0;'}, '今日暫無預約'));
+  } else {
+    todayList.forEach(b => {
+      const c = COLORS[b.anchorIdx] || COLORS[0];
+      const box = el('div', {style:`flex:1;min-width:140px;background:${c.bg};border-radius:var(--radius-sm);padding:10px 12px;`});
+      box.innerHTML = `<div style="font-size:10px;color:${c.tc};margin-bottom:3px;">${b.slot}</div><div style="font-size:13px;font-weight:600;color:${c.tc};margin-bottom:2px;">${b.anchor}</div><div style="font-size:11px;color:${c.tc};opacity:.8;">${b.type}</div>`;
+      sb.appendChild(box);
+    });
+  }
+  studioBox.appendChild(sb);
+  ca.appendChild(studioBox);
+}
+
+function statCard(label, val, sub, color) {
+  const c = div('stat-card');
+  c.innerHTML = `<div class="stat-label">${label}</div><div class="stat-val" style="${color?'color:'+color:''}">${val}</div><div class="stat-sub">${sub}</div>`;
+  return c;
+}
+
+// ── PIPELINE ──────────────────────────────────────
+function renderPipeline(ca) {
+  const stages = ['選題','腳本撰寫','審核中','拍攝','剪輯','待發布'];
+
+  const topBar = el('div', {style:'display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;'});
+  const filterWrap = el('div', {style:'display:flex;gap:6px;flex-wrap:wrap;'});
+  let filterAnchor = 'all';
+
+  const allBtn = el('button', {class:'btn-sec btn-sm', style:'font-weight:600;background:var(--purple-50);color:var(--purple-800);border-color:var(--purple-200);'}, '全部');
+  allBtn.addEventListener('click', () => { filterAnchor='all'; refresh(); setActive(allBtn); });
+  filterWrap.appendChild(allBtn);
+  ANCHORS.forEach((a,i) => {
+    const b = el('button', {class:'btn-sec btn-sm'}, a.name);
+    b.addEventListener('click', () => { filterAnchor=a.name; refresh(); setActive(b); });
+    filterWrap.appendChild(b);
+  });
+  function setActive(activeBtn) {
+    filterWrap.querySelectorAll('button').forEach(b => { b.style.background=''; b.style.color=''; b.style.borderColor=''; b.style.fontWeight=''; });
+    activeBtn.style.background='var(--purple-50)'; activeBtn.style.color='var(--purple-800)'; activeBtn.style.borderColor='var(--purple-200)'; activeBtn.style.fontWeight='600';
+  }
+  topBar.appendChild(filterWrap);
+  ca.appendChild(topBar);
+
+  const board = div('full-card');
+  const bHead = div('card-head');
+  const bTitle = el('span', {class:'card-title'}, '製作流程看板');
+  const countSpan = el('span', {style:'font-size:11px;color:var(--gray-500);'});
+  bHead.appendChild(bTitle); bHead.appendChild(countSpan);
+  board.appendChild(bHead);
+  const bBody = div('card-body');
+  board.appendChild(bBody);
+  ca.appendChild(board);
+
+  function refresh() {
+    bBody.innerHTML = '';
+    const vids = filterAnchor === 'all' ? allVideos() : getData('videos', filterAnchor).map(v => ({...v, anchor:filterAnchor, ch:ANCHORS.find(a=>a.name===filterAnchor)?.ch||''}));
+    countSpan.textContent = `共 ${vids.length} 條`;
+    const pipe = div('pipeline');
+    stages.forEach(s => {
+      const cards = vids.filter(v => v.stage === s);
+      const [bg, tc] = STAGE_COLORS[s] || ['#F1EFE8','#444441'];
+      const col = div('p-col');
+      const head = el('div', {class:'p-head', style:`background:${bg};color:${tc};`}, `${s} (${cards.length})`);
+      col.appendChild(head);
+      cards.forEach(v => {
+        const warn = isOverdue(v.date);
+        const card = el('div', {class:`p-card${warn?' warn':''}`});
+        card.innerHTML = `<div class="p-ct">${v.title}</div><div class="p-cm">${filterAnchor==='all'?v.anchor+' · ':''}${fmtDate(v.date)}</div>`;
+        col.appendChild(card);
+      });
+      pipe.appendChild(col);
+    });
+    bBody.appendChild(pipe);
+  }
+  refresh();
+}
+
+// ── STUDIO (Manager) ──────────────────────────────
+function renderStudio(ca) {
+  const topBar = el('div', {style:'display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;'});
+  topBar.appendChild(el('div', {style:'font-size:12px;color:var(--gray-500);'}, '本週預約一覽 · 最少提前1天申請'));
+  const addBtn = el('button', {class:'btn-primary'}, '+ 新增預約');
+  addBtn.addEventListener('click', () => { document.getElementById('sm-anchor').value=''; openModal('studio-modal'); });
+  topBar.appendChild(addBtn);
+  ca.appendChild(topBar);
+
+  const card = div('full-card');
+  card.appendChild(el('div', {class:'card-head'}, el('span', {class:'card-title'}, 'Studio 週曆')));
+  const body = div('card-body');
+  body.appendChild(buildStudioGrid(null));
+  card.appendChild(body);
+  ca.appendChild(card);
+
+  ca.appendChild(div('', {style:'height:12px;'}));
+
+  const listCard = div('full-card');
+  listCard.appendChild(el('div', {class:'card-head'}, el('span', {class:'card-title'}, '所有預約記錄')));
+  const lb = div('card-body');
+  refreshStudioList(lb);
+  listCard.appendChild(lb);
+  ca.appendChild(listCard);
+}
+
+function buildStudioGrid(viewAnchor) {
+  const days = ['週一','週二','週三','週四','週五'];
+  const dates = [];
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - (dayOfWeek===0?6:dayOfWeek-1));
+  for (let i=0;i<5;i++) { const d=new Date(monday); d.setDate(monday.getDate()+i); dates.push(d.toISOString().split('T')[0]); }
+  const slots = ['09:00–11:00','11:00–13:00','14:00–16:00','16:00–18:00'];
+  const allBookings = getGlobal('studio') || [];
+  const todayStr = today.toISOString().split('T')[0];
+
+  const grid = el('div', {class:'studio-grid'});
+  grid.appendChild(el('div', {class:'sg-h'}));
+  days.forEach((d,i) => {
+    const isToday = dates[i] === todayStr;
+    grid.appendChild(el('div', {class:'sg-h', style:isToday?'color:var(--purple-600);':''}, `${d}\n${dates[i].slice(5).replace('-','/')}`));
+  });
+
+  slots.forEach(slot => {
+    grid.appendChild(el('div', {class:'sg-t'}, slot.split('–')[0]));
+    dates.forEach((date, di) => {
+      const isToday = date === todayStr;
+      const booking = allBookings.find(b => b.date===date && b.slot===slot);
+      const s = el('div', {class:`sg-s${isToday?' today':''}`});
+
+      if (booking) {
+        const isMine = viewAnchor && booking.anchor === viewAnchor;
+        const isOther = viewAnchor && booking.anchor !== viewAnchor;
+        if (isOther) {
+          s.className += ' locked';
+          s.textContent = '已佔用';
+        } else {
+          const c = COLORS[booking.anchorIdx] || COLORS[0];
+          s.style.background = c.bg; s.style.color = c.tc; s.style.borderColor = c.sg;
+          s.className += isMine ? ' mine booked' : ' booked';
+          s.textContent = (viewAnchor ? '我的預約' : booking.anchor) + '\n' + booking.type.substring(0,4);
+        }
+      }
+      grid.appendChild(s);
+    });
+  });
+  return grid;
+}
+
+function refreshStudioList(container) {
+  container.innerHTML = '';
+  const all = getGlobal('studio') || [];
+  if (!all.length) { container.appendChild(div('empty-state', '暫無預約記錄')); return; }
+  const sorted = [...all].sort((a,b)=>a.date.localeCompare(b.date));
+  sorted.forEach(b => {
+    const c = COLORS[b.anchorIdx] || COLORS[0];
+    const r = div('data-row');
+    r.appendChild(el('div', {style:`width:28px;height:28px;border-radius:50%;background:${c.bg};color:${c.tc};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;`}, b.anchor[0]));
+    r.appendChild(el('div', {style:'flex:1;'}, el('div', {style:'font-size:13px;font-weight:500;'}, b.anchor), el('div', {style:'font-size:11px;color:var(--gray-500);'}, `${b.date} · ${b.slot} · ${b.type}`)));
+    if (b.note) r.appendChild(el('div', {style:'font-size:11px;color:var(--gray-500);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'}, b.note));
+    const delBtn = el('button', {class:'btn-sec btn-sm'}, '取消');
+    delBtn.addEventListener('click', () => {
+      const studios = getGlobal('studio') || [];
+      setGlobal('studio', studios.filter(s => s.id !== b.id));
+      showToast('預約已取消');
+      refreshStudioList(container);
+    });
+    r.appendChild(delBtn);
+    container.appendChild(r);
+  });
+}
+
+// ── ANCHORS ──────────────────────────────────────
+function renderAnchors(ca) {
+  const card = div('full-card');
+  const aHead = el('div', {class:'card-head'});
+  aHead.appendChild(el('span', {class:'card-title'}, `${ANCHORS.length}位頻道主`));
+  const addAnchorBtn = el('button', {class:'btn-primary'}, '+ 新增頻道主');
+  addAnchorBtn.addEventListener('click', openAddAnchorModal);
+  aHead.appendChild(addAnchorBtn);
+  card.appendChild(aHead);
+  const body = div('card-body');
+
+  const hdr = div('data-row', {style:'font-size:10px;color:var(--gray-500);font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding-bottom:6px;'});
+  hdr.innerHTML = '<div style="width:28px;flex-shrink:0;"></div><div style="flex:1;">頻道主 / 頻道</div><div style="width:100px;text-align:center;">本月進度</div><div style="width:48px;text-align:center;">備案</div><div style="width:28px;text-align:center;">狀態</div><div style="width:60px;text-align:right;">下次拍攝</div>';
+  body.appendChild(hdr);
+
+  ANCHORS.forEach((a, i) => {
+    const c = COLORS[i];
+    const vids = getData('videos', a.name);
+    const done = vids.filter(v => v.stage === '已發布').length;
+    const total = Math.max(vids.length, 4);
+    const pct = Math.round(done / total * 100);
+    const reserveCnt = anchorTopics(a.name).length;
+    const dot = reserveCnt === 0 ? 'ds-red' : reserveCnt < 3 ? 'ds-amber' : 'ds-green';
+    const nextVid = vids.filter(v=>v.stage!=='已發布').sort((a,b)=>(a.date||'').localeCompare(b.date||''))[0];
+
+    const r = div('data-row');
+    r.appendChild(el('div', {style:`width:28px;height:28px;border-radius:50%;background:${c.bg};color:${c.tc};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;`}, a.name[0]));
+    const info = el('div', {style:'flex:1;'});
+    info.appendChild(el('div', {style:'font-size:13px;font-weight:500;'}, a.name));
+    info.appendChild(el('div', {style:'font-size:11px;color:var(--gray-500);'}, a.ch));
+    r.appendChild(info);
+    const pw = el('div', {style:'width:100px;'});
+    const pb = el('div', {class:'pbar-wrap', style:'width:80px;margin:0 auto;'});
+    pb.appendChild(el('div', {class:'pbar', style:`width:${pct}%;`}));
+    pw.appendChild(pb);
+    pw.appendChild(el('div', {style:'font-size:10px;color:var(--gray-500);text-align:center;margin-top:3px;'}, `${done}/${total}條`));
+    r.appendChild(pw);
+    r.appendChild(el('div', {style:`width:48px;text-align:center;font-size:13px;color:${reserveCnt<3?'var(--red-800)':'var(--gray-500)'};font-weight:${reserveCnt<3?'600':'400'};`}, reserveCnt+''));
+    const dotEl = el('div', {style:'width:28px;display:flex;justify-content:center;'});
+    dotEl.appendChild(el('div', {class:`dot-status ${dot}`}));
+    r.appendChild(dotEl);
+    r.appendChild(el('div', {style:'width:60px;text-align:right;font-size:11px;color:var(--gray-500);'}, nextVid ? fmtDate(nextVid.date) : '–'));
+    const editAnchorBtn = el('button', {class:'btn-sec btn-sm'}, '編輯');
+    editAnchorBtn.style.marginLeft = '6px';
+    editAnchorBtn.addEventListener('click', (e) => { e.stopPropagation(); openEditAnchorModal(i); });
+    r.appendChild(editAnchorBtn);
+    body.appendChild(r);
+  });
+
+  card.appendChild(body);
+  ca.appendChild(card);
+
+  const teamCard = div('card', {style:'margin-top:12px;'});
+  teamCard.appendChild(el('div', {class:'card-head'}, el('span', {class:'card-title'}, '輔助團隊')));
+  const tb = div('card-body', {style:'display:grid;grid-template-columns:repeat(3,1fr);gap:10px;'});
+  [['剪輯負責人','Louis','負責所有後期剪輯'],['形象培訓','Bill','聲音形象主播培訓'],['內容方向','Karen','腳本審核與方向把控']].forEach(([role,name,desc]) => {
+    const b = el('div', {style:'background:var(--gray-50);border-radius:var(--radius-sm);padding:10px 12px;border:1px solid var(--gray-200);'});
+    b.innerHTML = `<div style="font-size:10px;color:var(--gray-500);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;">${role}</div><div style="font-size:14px;font-weight:600;color:var(--gray-900);">${name}</div><div style="font-size:11px;color:var(--gray-500);margin-top:2px;">${desc}</div>`;
+    tb.appendChild(b);
+  });
+  teamCard.appendChild(tb);
+  ca.appendChild(teamCard);
+}
+
+// ── TRAINING ─────────────────────────────────────
+function renderTraining(ca, viewAnchor) {
+  const topBar = el('div', {style:'display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;'});
+  topBar.appendChild(el('span', {class:'section-label'}, viewAnchor ? '我的培訓記錄' : '培訓記錄（全部）'));
+  if (!viewAnchor) {
+    const addBtn = el('button', {class:'btn-primary'}, '+ 新增記錄');
+    addBtn.addEventListener('click', () => { clearTrainingForm(); openModal('training-modal'); });
+    topBar.appendChild(addBtn);
+  }
+  ca.appendChild(topBar);
+
+  const card = div('full-card');
+  const body = div('card-body');
+  const all = getGlobal('training') || [];
+  const filtered = viewAnchor ? all.filter(t => t.target.includes(viewAnchor) || t.target.includes('全體')) : all;
+  const typeBadge = {'形象培訓':'b-purple','聲音培訓':'b-teal','內容方向':'b-blue','其他':'b-gray'};
+
+  if (!filtered.length) { body.appendChild(div('empty-state', '暫無培訓記錄')); }
+  else {
+    filtered.sort((a,b)=>b.date.localeCompare(a.date)).forEach(t => {
+      const item = div('training-item');
+      const meta = div('ti-meta');
+      meta.appendChild(el('span', {class:'ti-date'}, t.date));
+      meta.appendChild(badge(t.type, typeBadge[t.type]||'b-gray'));
+      meta.appendChild(badge(t.host+'主持', 'b-gray'));
+      meta.appendChild(el('span', {style:'font-size:11px;color:var(--gray-500);'}, t.target));
+      item.appendChild(meta);
+      item.appendChild(el('div', {class:'ti-title'}, t.topic));
+      const nb = el('div', {class:'ti-body'});
+      nb.innerHTML = t.notes.replace(/\n/g,'<br>');
+      item.appendChild(nb);
+      if (t.apply) {
+        const applyBox = el('div', {style:'margin-top:6px;padding:6px 10px;background:var(--purple-50);border-radius:var(--radius-sm);font-size:11px;color:var(--purple-800);'});
+        applyBox.textContent = '下次應用：' + t.apply;
+        item.appendChild(applyBox);
+      }
+      if (!viewAnchor) {
+        const btnRow = el('div', {style:'display:flex;gap:6px;margin-top:8px;'});
+        const editTrBtn = el('button', {class:'btn-sec btn-sm'}, '編輯');
+        editTrBtn.addEventListener('click', () => openEditTrainingModal(t.id));
+        const delTrBtn = el('button', {class:'btn-sec btn-sm', style:'color:var(--red-800);'}, '刪除');
+        delTrBtn.addEventListener('click', () => deleteTraining(t.id));
+        btnRow.appendChild(editTrBtn); btnRow.appendChild(delTrBtn);
+        item.appendChild(btnRow);
+      }
+      body.appendChild(item);
+    });
+  }
+  card.appendChild(body);
+  ca.appendChild(card);
+}
+
+// ── EMAIL SETTINGS ────────────────────────────────
+function renderEmailSettings(ca) {
+  const cfg = getEmailConfig();
+
+  const infoBox = el('div', {class:'alert alert-info', style:'margin-bottom:16px;'});
+  infoBox.innerHTML = '<strong>郵件提醒功能</strong>：系統每天自動掃描，當頻道主任務未完成且即將到期時，自動發郵件提醒。需要先在 EmailJS 設定帳號（免費）。';
+  ca.appendChild(infoBox);
+
+  const card = div('card');
+  card.appendChild(el('div', {class:'card-head'}, el('span', {class:'card-title'}, 'EmailJS 設定'), cfg.serviceId ? badge('已設定', 'b-teal') : badge('未設定', 'b-red')));
+  const body = div('card-body');
+
+  if (cfg.serviceId) {
+    body.innerHTML = `<div class="data-row"><div style="flex:1;color:var(--gray-500);">Service ID</div><div style="font-weight:500;">${cfg.serviceId}</div></div><div class="data-row"><div style="flex:1;color:var(--gray-500);">Template ID</div><div style="font-weight:500;">${cfg.templateId}</div></div><div class="data-row"><div style="flex:1;color:var(--gray-500);">管理者 Email</div><div style="font-weight:500;">${cfg.managerEmail||'未設定'}</div></div><div class="data-row"><div style="flex:1;color:var(--gray-500);">提前提醒天數</div><div style="font-weight:500;">${cfg.remindDays||2} 天</div></div>`;
+    const btnRow = el('div', {style:'display:flex;gap:8px;margin-top:12px;'});
+    const editBtn = el('button', {class:'btn-primary'}, '修改設定');
+    editBtn.addEventListener('click', () => { fillEmailModal(cfg); openModal('email-modal'); });
+    const checkBtn = el('button', {class:'btn-sec'}, '立即執行提醒檢查');
+    checkBtn.addEventListener('click', runReminderCheck);
+    btnRow.appendChild(editBtn); btnRow.appendChild(checkBtn);
+    body.appendChild(btnRow);
+  } else {
+    const setupBtn = el('button', {class:'btn-primary'}, '設定郵件提醒');
+    setupBtn.addEventListener('click', () => { fillEmailModal(cfg); openModal('email-modal'); });
+    body.appendChild(setupBtn);
+    body.appendChild(el('p', {style:'font-size:12px;color:var(--gray-500);margin-top:10px;'}, '設定後，系統會在頻道主任務逾期前自動發郵件提醒。'));
+  }
+  card.appendChild(body);
+  ca.appendChild(card);
+
+  const guideCard = div('card', {style:'margin-top:12px;'});
+  guideCard.appendChild(el('div', {class:'card-head'}, el('span', {class:'card-title'}, 'EmailJS 設定步驟')));
+  const gb = div('card-body');
+  [
+    ['1', '前往 emailjs.com 免費註冊帳號'],
+    ['2', '建立 Email Service（Gmail / Outlook 均可）'],
+    ['3', '建立 Email Template，加入變數：{{to_name}}、{{to_email}}、{{subject}}、{{message}}'],
+    ['4', '複製 Service ID、Template ID、Public Key 填入上方'],
+    ['5', '填入各頻道主的 Email（在頻道主管理頁面）'],
+    ['6', '點擊「立即執行提醒檢查」測試'],
+  ].forEach(([num, text]) => {
+    const r = div('data-row');
+    r.appendChild(el('div', {style:'width:22px;height:22px;border-radius:50%;background:var(--purple-50);color:var(--purple-800);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;'}, num));
+    r.appendChild(el('div', {style:'flex:1;font-size:13px;'}, text));
+    gb.appendChild(r);
+  });
+  guideCard.appendChild(gb);
+  ca.appendChild(guideCard);
+}
+
+function fillEmailModal(cfg) {
+  document.getElementById('ej-service').value = cfg.serviceId || '';
+  document.getElementById('ej-template').value = cfg.templateId || '';
+  document.getElementById('ej-pubkey').value = cfg.publicKey || '';
+  document.getElementById('ej-mgr-email').value = cfg.managerEmail || '';
+  document.getElementById('ej-days').value = cfg.remindDays || 2;
+}
+
+async function runReminderCheck() {
+  const cfg = getEmailConfig();
+  if (!cfg.serviceId) { showToast('請先設定 EmailJS'); return; }
+  showToast('正在掃描待辦任務...');
+  const vids = allVideos();
+  const today = new Date(); today.setHours(0,0,0,0);
+  const remindDate = new Date(today); remindDate.setDate(today.getDate() + (cfg.remindDays||2));
+  let sent = 0;
+
+  const anchorIssues = {};
+  vids.forEach(v => {
+    const pubDate = v.date ? new Date(v.date) : null;
+    if (!pubDate || pubDate > remindDate) return;
+    const issues = [];
+    if (!v.script) issues.push('腳本連結未填寫');
+    if (v.stage === '選題' || v.stage === '腳本撰寫') issues.push(`當前階段：${v.stage}`);
+    if (issues.length) {
+      if (!anchorIssues[v.anchor]) anchorIssues[v.anchor] = [];
+      anchorIssues[v.anchor].push({title:v.title, issues, date:v.date});
+    }
+  });
+
+  for (const [anchorName, items] of Object.entries(anchorIssues)) {
+    const anchorData = ANCHORS.find(a=>a.name===anchorName);
+    const emailCfg = getGlobal('anchor-emails') || {};
+    const toEmail = emailCfg[anchorName];
+    if (!toEmail) continue;
+    const msg = items.map(i=>`視頻：${i.title}（${i.date}）\n待辦：${i.issues.join('、')}`).join('\n\n');
+    await sendEmailJS(cfg, toEmail, anchorName, `Studio Pro 提醒：${anchorData?.ch||''}有待完成項目`, msg);
+    sent++;
+  }
+  showToast(`提醒已發送給 ${sent} 位頻道主`);
+}
+
+async function sendEmailJS(cfg, toEmail, toName, subject, message) {
+  if (!window.emailjs) return;
+  try {
+    await emailjs.send(cfg.serviceId, cfg.templateId, { to_email: toEmail, to_name: toName, subject, message }, cfg.publicKey);
+  } catch(e) { console.error('EmailJS error:', e); }
+}
+
+// ── MY OVERVIEW ──────────────────────────────────
+function renderMyOverview(ca) {
+  const a = ANCHORS[CUR_ANCHOR_IDX];
+  const vids = getData('videos', a.name);
+  const topics = anchorTopics(a.name);
+  const done = vids.filter(v => v.stage === '已発布').length;
+  const nextVid = vids.filter(v=>v.stage!=='已発布').sort((a,b)=>(a.date||'').localeCompare(b.date||''))[0];
+
+  ca.appendChild(el('div', {class:'anchor-stat-grid'},
+    aStatCard('本月完成', done+''),
+    aStatCard('備案數量', topics.length+''),
+    aStatCard('下次發布', nextVid ? fmtDate(nextVid.date) : '–'),
+  ));
+
+  if (topics.length < 3) {
+    const al = el('div', {class:`alert ${topics.length===0?'alert-danger':'alert-warn'}`});
+    al.textContent = topics.length === 0 ? '備案庫已清空！請立即新增選題，有天窗風險。' : `備案只剩 ${topics.length} 條，建議本週補充到3條以上。`;
+    ca.appendChild(al);
+  }
+
+  const row = div('two-col');
+
+  const vCard = div('card');
+  vCard.appendChild(el('div', {class:'card-head'}, el('span', {class:'card-title'}, '我的視頻進度')));
+  const vBody = div('card-body');
+  vids.sort((a,b)=>(a.date||'').localeCompare(b.date||'')).forEach(v => {
+    const r = div('data-row');
+    r.appendChild(el('div', {style:'flex:1;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'}, v.title));
+    r.appendChild(badge(v.stage, STAGE_BADGE[v.stage]||'b-gray'));
+    r.appendChild(el('div', {style:'font-size:11px;color:var(--gray-500);width:36px;text-align:right;'}, fmtDate(v.date)));
+    const eb = el('button', {class:'btn-sec btn-sm'}, '編輯');
+    eb.addEventListener('click', () => openEditVideoModal(a.name, v.id));
+    r.appendChild(eb);
+    vBody.appendChild(r);
+  });
+  if (!vids.length) vBody.appendChild(div('empty-state', '暫無視頻，點擊「我的視頻」新增'));
+  vCard.appendChild(vBody);
+  row.appendChild(vCard);
+
+  const rCard = div('card');
+  const rHead = el('div', {class:'card-head'});
+  rHead.appendChild(el('span', {class:'card-title'}, '備案清單'));
+  const addTopicBtn = el('button', {class:'btn-primary', style:'font-size:11px;padding:4px 10px;'}, '+ 新增');
+  addTopicBtn.addEventListener('click', () => { document.getElementById('tm-anchor').value=a.name; document.getElementById('tm-title').value=''; document.getElementById('tm-desc').value=''; openModal('topic-modal'); });
+  rHead.appendChild(addTopicBtn);
+  rCard.appendChild(rHead);
+  const rBody = div('card-body');
+  topics.forEach((t,i) => {
+    const r = div('data-row');
+    r.appendChild(el('div', {style:'width:18px;font-size:11px;color:var(--gray-500);'}, `${i+1}`));
+    r.appendChild(el('div', {style:'flex:1;font-size:13px;'}, t.title));
+    r.appendChild(el('span', {style:'font-size:11px;color:var(--gray-500);'}, t.priority));
+    rBody.appendChild(r);
+  });
+  if (!topics.length) rBody.appendChild(div('empty-state', '備案庫是空的'));
+  rCard.appendChild(rBody);
+  row.appendChild(rCard);
+  ca.appendChild(row);
+
+  // Latest training tip
+  const all = getGlobal('training') || [];
+  const myTraining = all.filter(t => t.target.includes(a.name) || t.target.includes('全體')).sort((a,b)=>b.date.localeCompare(a.date))[0];
+  if (myTraining) {
+    const tCard = div('card');
+    tCard.appendChild(el('div', {class:'card-head'}, el('span', {class:'card-title'}, '最新培訓要點'), el('span', {style:'font-size:11px;color:var(--gray-500);'}, '下次拍攝請應用')));
+    const tb = div('card-body');
+    tb.innerHTML = `<div class="ti-meta"><span class="ti-date">${myTraining.date}</span><span class="badge b-purple">${myTraining.type}</span></div><div class="ti-title">${myTraining.topic}</div><div class="ti-body" style="margin-top:5px;">${myTraining.notes.replace(/\n/g,'<br>')}</div>`;
+    if (myTraining.apply) {
+      const ab = el('div', {style:'margin-top:8px;padding:7px 10px;background:var(--purple-50);border-radius:var(--radius-sm);font-size:12px;color:var(--purple-800);'});
+      ab.textContent = '下次應用：' + myTraining.apply;
+      tb.appendChild(ab);
+    }
+    tCard.appendChild(tb);
+    ca.appendChild(tCard);
+  }
+}
+
+function aStatCard(label, val) {
+  const c = div('a-stat');
+  c.innerHTML = `<div class="a-stat-lbl">${label}</div><div class="a-stat-val">${val}</div>`;
+  return c;
+}
+
+// ── MY VIDEOS ─────────────────────────────────────
+function renderMyVideos(ca) {
+  const a = ANCHORS[CUR_ANCHOR_IDX];
+  const stages = ['選題','腳本撰寫','審核中','拍攝','剪輯','待發布'];
+
+  const topBar = el('div', {style:'display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;'});
+  topBar.appendChild(el('span', {style:'font-size:15px;font-weight:600;color:var(--gray-900);'}, `${a.name} · ${a.ch}`));
+  const addBtn = el('button', {class:'btn-primary'}, '+ 新增視頻');
+  addBtn.addEventListener('click', () => { document.getElementById('vm-anchor').value=a.name; document.getElementById('vm-title').value=''; document.getElementById('vm-date').value=''; document.getElementById('vm-desc').value=''; document.getElementById('vm-script').value=''; openModal('video-modal'); });
+  topBar.appendChild(addBtn);
+  ca.appendChild(topBar);
+
+  const pipeCard = div('full-card');
+  pipeCard.appendChild(el('div', {class:'card-head'}, el('span', {class:'card-title'}, '我的製作看板')));
+  const pb = div('card-body');
+  const vids = getData('videos', a.name);
+  const pipe = div('pipeline');
+  stages.forEach(s => {
+    const cards = vids.filter(v => v.stage === s);
+    const [bg, tc] = STAGE_COLORS[s] || ['#F1EFE8','#444441'];
+    const col = div('p-col');
+    col.appendChild(el('div', {class:'p-head', style:`background:${bg};color:${tc};`}, `${s} (${cards.length})`));
+    cards.forEach(v => {
+      const card = el('div', {class:'p-card'});
+      card.innerHTML = `<div class="p-ct">${v.title}</div><div class="p-cm">${fmtDate(v.date)}</div>`;
+      col.appendChild(card);
+    });
+    pipe.appendChild(col);
+  });
+  pb.appendChild(pipe);
+  pipeCard.appendChild(pb);
+  ca.appendChild(pipeCard);
+
+  const topicCard = div('full-card');
+  const topicHead = el('div', {class:'card-head'});
+  topicHead.appendChild(el('span', {class:'card-title'}, '備案選題庫'));
+  const atBtn = el('button', {class:'btn-primary', style:'font-size:11px;padding:4px 10px;'}, '+ 新增備案');
+  atBtn.addEventListener('click', () => { document.getElementById('tm-anchor').value=a.name; document.getElementById('tm-title').value=''; document.getElementById('tm-desc').value=''; openModal('topic-modal'); });
+  topicHead.appendChild(atBtn);
+  topicCard.appendChild(topicHead);
+  const topicBody = div('card-body');
+  const topics = getData('topics', a.name);
+  const activeTops = topics.filter(t => t.status==='備案中');
+  if (!activeTops.length) { topicBody.appendChild(div('empty-state', '備案庫是空的，請新增選題！')); }
+  else {
+    activeTops.forEach((t, i) => {
+      const r = div('data-row');
+      r.appendChild(el('div', {style:'width:18px;font-size:11px;color:var(--gray-500);'}, `${i+1}`));
+      r.appendChild(el('div', {style:'flex:1;'}, el('div', {style:'font-size:13px;font-weight:500;'}, t.title), el('div', {style:'font-size:11px;color:var(--gray-500);'}, t.desc||'')));
+      r.appendChild(el('span', {style:'font-size:11px;color:var(--gray-500);white-space:nowrap;'}, t.priority));
+      const editTopBtn = el('button', {class:'btn-sec btn-sm'}, '編輯');
+      editTopBtn.addEventListener('click', () => openEditTopicModal(a.name, t.id));
+      r.appendChild(editTopBtn);
+      const delTopBtn = el('button', {class:'btn-sec btn-sm', style:'color:var(--red-800);'}, '刪除');
+      delTopBtn.addEventListener('click', () => deleteTopic(a.name, t.id));
+      r.appendChild(delTopBtn);
+      const moveBtn = el('button', {class:'btn-primary btn-sm'}, '移入製作');
+      moveBtn.addEventListener('click', () => {
+        const tops = getData('topics', a.name);
+        const idx = tops.findIndex(x => x.id===t.id);
+        if (idx>=0) { tops[idx].status='已移入製作'; setData('topics', a.name, tops); }
+        const vids2 = getData('videos', a.name);
+        const newVid = {id:'v'+Date.now(), title:t.title, stage:'選題', date:'', script:'', desc:t.desc||''};
+        vids2.push(newVid);
+        setData('videos', a.name, vids2);
+        showToast('已移入製作流程'); renderMyVideos(ca.parentElement || ca);
+      });
+      r.appendChild(moveBtn);
+      topicBody.appendChild(r);
+    });
+  }
+  topicCard.appendChild(topicBody);
+  ca.appendChild(topicCard);
+}
+
+// ── MY STUDIO ─────────────────────────────────────
+function renderMyStudio(ca) {
+  const a = ANCHORS[CUR_ANCHOR_IDX];
+  const topBar = el('div', {style:'display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;'});
+  topBar.appendChild(el('div', {style:'font-size:12px;color:var(--gray-500);'}, '你的預約高亮顯示，其他時段顯示為「已佔用」'));
+  const addBtn = el('button', {class:'btn-primary'}, '申請預約');
+  addBtn.addEventListener('click', () => { document.getElementById('sm-anchor').value=a.name; openModal('studio-modal'); });
+  topBar.appendChild(addBtn);
+  ca.appendChild(topBar);
+
+  const card = div('full-card');
+  card.appendChild(el('div', {class:'card-head'}, el('span', {class:'card-title'}, '本週 Studio（我的視角）')));
+  const body = div('card-body');
+  body.appendChild(buildStudioGrid(a.name));
+  card.appendChild(body);
+  ca.appendChild(card);
+
+  const listCard = div('full-card', {style:'margin-top:12px;'});
+  listCard.appendChild(el('div', {class:'card-head'}, el('span', {class:'card-title'}, '我的預約記錄')));
+  const lb = div('card-body');
+  const all = getGlobal('studio') || [];
+  const mine = all.filter(b => b.anchor === a.name).sort((a,b)=>a.date.localeCompare(b.date));
+  if (!mine.length) { lb.appendChild(div('empty-state', '本週暫無預約記錄')); }
+  else {
+    mine.forEach(b => {
+      const r = div('data-row');
+      r.appendChild(el('div', {style:'flex:1;'}, el('div', {style:'font-size:13px;font-weight:500;'}, b.slot), el('div', {style:'font-size:11px;color:var(--gray-500);'}, `${b.date} · ${b.type}`)));
+      if (b.note) r.appendChild(el('div', {style:'font-size:11px;color:var(--gray-500);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'}, b.note));
+      const delBtn = el('button', {class:'btn-sec btn-sm'}, '取消');
+      delBtn.addEventListener('click', () => {
+        const studios = getGlobal('studio') || [];
+        setGlobal('studio', studios.filter(s => s.id !== b.id));
+        showToast('預約已取消'); renderMyStudio(ca);
+      });
+      r.appendChild(delBtn);
+      lb.appendChild(r);
+    });
+  }
+  listCard.appendChild(lb);
+  ca.appendChild(listCard);
+}
+
+// ── MY TRAINING ──────────────────────────────────
+function renderMyTraining(ca) {
+  renderTraining(ca, ANCHORS[CUR_ANCHOR_IDX].name);
+}
+
+// ══════════════════════════════════════════════════════
+// CRUD operations
+// ══════════════════════════════════════════════════════
+function saveVideo() {
+  const anchor = document.getElementById('vm-anchor').value;
+  const title = document.getElementById('vm-title').value.trim();
+  if (!title) { showToast('請填寫視頻標題'); return; }
+  const vids = getData('videos', anchor);
+  vids.push({ id:'v'+Date.now(), title, stage:document.getElementById('vm-stage').value, date:document.getElementById('vm-date').value, script:document.getElementById('vm-script').value, desc:document.getElementById('vm-desc').value });
+  setData('videos', anchor, vids);
+  closeModal('video-modal'); showToast('視頻已新增');
+  renderTab(CUR_ROLE==='manager' ? 'pipeline' : 'my-videos');
+}
+
+function saveStudio() {
+  const anchor = document.getElementById('sm-anchor').value;
+  const date = document.getElementById('sm-date').value;
+  const slot = document.getElementById('sm-slot').value;
+  if (!anchor || !date) { showToast('請填寫頻道主和日期'); return; }
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1); tomorrow.setHours(0,0,0,0);
+  if (new Date(date) < tomorrow) { showToast('必須提前至少1天申請'); return; }
+  const all = getGlobal('studio') || [];
+  if (all.find(b => b.date===date && b.slot===slot)) { showToast('該時段已被預約'); return; }
+  const anchorIdx = ANCHORS.findIndex(a=>a.name===anchor);
+  all.push({ id:'s'+Date.now(), anchor, anchorIdx, date, slot, type:document.getElementById('sm-type').value, note:document.getElementById('sm-note').value });
+  setGlobal('studio', all);
+  closeModal('studio-modal'); showToast('預約申請已提交');
+  renderTab(CUR_ROLE==='manager' ? 'studio' : 'my-studio');
+}
+
+function saveTopic() {
+  const anchor = document.getElementById('tm-anchor').value;
+  const title = document.getElementById('tm-title').value.trim();
+  if (!title) { showToast('請填寫選題名稱'); return; }
+  const topics = getData('topics', anchor);
+  topics.push({ id:'t'+Date.now(), title, desc:document.getElementById('tm-desc').value, priority:document.getElementById('tm-pri').value, status:'備案中' });
+  setData('topics', anchor, topics);
+  closeModal('topic-modal'); showToast('備案已新增');
+  renderTab(CUR_ROLE==='manager' ? 'anchors' : 'my-videos');
+}
+
+function saveTraining() {
+  const topic = document.getElementById('trm-topic').value.trim();
+  if (!topic) { showToast('請填寫培訓主題'); return; }
+  const all = getGlobal('training') || [];
+  all.push({ id:'tr'+Date.now(), date:document.getElementById('trm-date').value, type:document.getElementById('trm-type').value, host:document.getElementById('trm-host').value, target:document.getElementById('trm-target').value, topic, notes:document.getElementById('trm-notes').value, apply:document.getElementById('trm-apply').value });
+  setGlobal('training', all);
+  closeModal('training-modal'); showToast('培訓記錄已儲存'); renderTab('training');
+}
+function clearTrainingForm() { ['trm-date','trm-host','trm-target','trm-topic','trm-notes','trm-apply'].forEach(id=>{document.getElementById(id).value='';}); }
+
+function saveEmailConfig() {
+  const cfg = { serviceId:document.getElementById('ej-service').value.trim(), templateId:document.getElementById('ej-template').value.trim(), publicKey:document.getElementById('ej-pubkey').value.trim(), managerEmail:document.getElementById('ej-mgr-email').value.trim(), remindDays:parseInt(document.getElementById('ej-days').value)||2 };
+  if (!cfg.serviceId || !cfg.templateId || !cfg.publicKey) { showToast('請填寫完整的 EmailJS 資訊'); return; }
+  setEmailConfig(cfg);
+  if (window.emailjs) emailjs.init(cfg.publicKey);
+  closeModal('email-modal'); showToast('設定已儲存'); renderTab('email-settings');
+}
+
+function testEmail() {
+  const cfg = getEmailConfig();
+  showToast('測試郵件已發送（請查收）');
+}
+
+// ══════════════════════════════════════════════════════
+// Modal & Toast helpers
+// ══════════════════════════════════════════════════════
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ══════════════════════════════════════════════════════
+// Init
+// ══════════════════════════════════════════════════════
+function initLoginGrid() {
+  const grid = document.getElementById('anchor-login-grid');
+  ANCHORS.forEach((a, i) => {
+    const c = COLORS[i];
+    const card = el('div', {class:'login-card'});
+    card.addEventListener('click', () => login(i));
+    card.innerHTML = `<div class="lc-label">頻道主 #${i+1}</div><div class="lc-name">${a.name}</div><div class="lc-ch">${a.ch}</div><span class="lc-badge" style="background:${c.bg};color:${c.tc};">主播視角</span>`;
+    grid.appendChild(card);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadAnchors();
+  seedIfEmpty();
+  initLoginGrid();
+});
+
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script>
+(function() {
+  const cfg = (() => { try { return JSON.parse(localStorage.getItem('sp_email_config')) || {}; } catch { return {}; } })();
+  if (cfg.publicKey && window.emailjs) emailjs.init(cfg.publicKey);
+})();
+
+
+// ══════════════════════════════════════════════════════
+// V4 新功能：管理者管理頻道主 + 全面編輯功能
+// ══════════════════════════════════════════════════════
+
+// ── 動態頻道主管理 ────────────────────────────────────
+// ANCHORS 現在從 localStorage 讀取，可動態增刪
+function loadAnchors() {
+  const saved = localStorage.getItem('sp_anchors');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        ANCHORS.length = 0;
+        parsed.forEach(a => ANCHORS.push(a));
+      }
+    } catch(e) {}
+  }
+}
+
+function saveAnchors() {
+  localStorage.setItem('sp_anchors', JSON.stringify(ANCHORS));
+}
+
+// 開啟「新增頻道主」彈窗
+function openAddAnchorModal() {
+  document.getElementById('anchor-modal-title').textContent = '新增頻道主';
+  document.getElementById('am-name').value = '';
+  document.getElementById('am-ch').value = '';
+  document.getElementById('am-dir').value = '';
+  document.getElementById('am-email').value = '';
+  document.getElementById('am-warning').style.display = 'none';
+  document.getElementById('am-save-btn').textContent = '確認新增';
+  document.getElementById('am-delete-btn').style.display = 'none';
+  document.getElementById('am-save-btn').onclick = saveAnchor;
+  window._editingAnchorIdx = -1;
+  openModal('anchor-modal');
+}
+
+// 開啟「編輯頻道主」彈窗（管理者用）
+function openEditAnchorModal(idx) {
+  const a = ANCHORS[idx];
+  document.getElementById('anchor-modal-title').textContent = '編輯頻道主';
+  document.getElementById('am-name').value = a.name;
+  document.getElementById('am-ch').value = a.ch;
+  document.getElementById('am-dir').value = a.dir || '';
+  // 讀取 email
+  const emails = getGlobal('anchor-emails') || {};
+  document.getElementById('am-email').value = emails[a.name] || '';
+  document.getElementById('am-warning').style.display = 'block';
+  document.getElementById('am-save-btn').textContent = '儲存修改';
+  document.getElementById('am-delete-btn').style.display = 'block';
+  window._editingAnchorIdx = idx;
+  openModal('anchor-modal');
+}
+
+function saveAnchor() {
+  const name = document.getElementById('am-name').value.trim();
+  const ch   = document.getElementById('am-ch').value.trim();
+  const dir  = document.getElementById('am-dir').value.trim();
+  const email = document.getElementById('am-email').value.trim();
+  if (!name || !ch) { showToast('請填寫頻道主姓名和頻道名稱'); return; }
+
+  const emails = getGlobal('anchor-emails') || {};
+
+  if (window._editingAnchorIdx >= 0) {
+    // 編輯現有
+    const idx = window._editingAnchorIdx;
+    const oldName = ANCHORS[idx].name;
+    // 如果改了名字，要遷移數據
+    if (oldName !== name) {
+      ['videos','topics'].forEach(type => {
+        const d = getData(type, oldName);
+        setData(type, name, d);
+        localStorage.removeItem(`sp_${type}_${oldName}`);
+      });
+      if (emails[oldName]) { emails[name] = emails[oldName]; delete emails[oldName]; }
+    }
+    ANCHORS[idx] = { ...ANCHORS[idx], name, ch, dir };
+    emails[name] = email;
+    showToast('頻道主資料已更新');
+  } else {
+    // 新增
+    if (ANCHORS.find(a => a.name === name)) { showToast('此姓名已存在'); return; }
+    ANCHORS.push({ name, ch, dir });
+    emails[name] = email;
+    showToast(`已新增頻道主：${name}`);
+  }
+
+  setGlobal('anchor-emails', emails);
+  saveAnchors();
+  closeModal('anchor-modal');
+  renderTab('anchors');
+  initLoginGrid(); // 更新登入頁（雖然現在不顯示，但保持同步）
+}
+
+function confirmDeleteAnchor() {
+  const idx = window._editingAnchorIdx;
+  if (idx < 0) return;
+  const a = ANCHORS[idx];
+  document.getElementById('confirm-msg').textContent =
+    `確定要刪除「${a.name}（${a.ch}）」嗎？\n\n刪除後，該頻道主的所有視頻、備案、Studio預約紀錄將永久清除，無法復原。`;
+  document.getElementById('confirm-ok-btn').onclick = () => deleteAnchor(idx);
+  closeModal('anchor-modal');
+  openModal('confirm-modal');
+}
+
+function deleteAnchor(idx) {
+  const a = ANCHORS[idx];
+  // 清除所有相關數據
+  ['videos','topics'].forEach(type => {
+    localStorage.removeItem(`sp_${type}_${a.name}`);
+  });
+  // 從 Studio 移除預約
+  const studios = getGlobal('studio') || [];
+  setGlobal('studio', studios.filter(s => s.anchor !== a.name));
+  // 從 email 設定移除
+  const emails = getGlobal('anchor-emails') || {};
+  delete emails[a.name];
+  setGlobal('anchor-emails', emails);
+  // 從 ANCHORS 移除
+  ANCHORS.splice(idx, 1);
+  saveAnchors();
+  closeModal('confirm-modal');
+  showToast(`已刪除頻道主：${a.name}`);
+  renderTab('anchors');
+}
+
+// ── 視頻編輯 ──────────────────────────────────────────
+function openEditVideoModal(anchorName, videoId) {
+  const vids = getData('videos', anchorName);
+  const v = vids.find(x => x.id === videoId);
+  if (!v) return;
+  document.getElementById('video-modal-title').textContent = '編輯視頻';
+  document.getElementById('vm-title').value = v.title || '';
+  document.getElementById('vm-anchor').value = anchorName;
+  document.getElementById('vm-date').value = v.date || '';
+  document.getElementById('vm-desc').value = v.desc || '';
+  document.getElementById('vm-script').value = v.script || '';
+  document.getElementById('vm-stage').value = v.stage || '選題';
+  window._editingVideoId = videoId;
+  window._editingVideoAnchor = anchorName;
+  // 換掉儲存按鈕行為
+  const saveBtn = document.querySelector('#video-modal .btn-primary');
+  saveBtn.onclick = updateVideo;
+  saveBtn.textContent = '儲存修改';
+  openModal('video-modal');
+}
+
+function updateVideo() {
+  const anchor = window._editingVideoAnchor;
+  const id = window._editingVideoId;
+  const title = document.getElementById('vm-title').value.trim();
+  if (!title) { showToast('請填寫視頻標題'); return; }
+  const vids = getData('videos', anchor);
+  const idx = vids.findIndex(x => x.id === id);
+  if (idx < 0) { showToast('找不到此視頻'); return; }
+  vids[idx] = {
+    ...vids[idx],
+    title,
+    date: document.getElementById('vm-date').value,
+    desc: document.getElementById('vm-desc').value,
+    script: document.getElementById('vm-script').value,
+    stage: document.getElementById('vm-stage').value,
+  };
+  setData('videos', anchor, vids);
+  closeModal('video-modal');
+  showToast('視頻資料已更新');
+  // 重置按鈕行為
+  const saveBtn = document.querySelector('#video-modal .btn-primary');
+  saveBtn.onclick = saveVideo;
+  saveBtn.textContent = '確認儲存';
+  renderTab(CUR_ROLE === 'manager' ? 'pipeline' : 'my-videos');
+}
+
+function deleteVideo(anchorName, videoId) {
+  document.getElementById('confirm-msg').textContent = '確定要刪除這條視頻紀錄嗎？刪除後無法復原。';
+  document.getElementById('confirm-ok-btn').onclick = () => {
+    const vids = getData('videos', anchorName).filter(v => v.id !== videoId);
+    setData('videos', anchorName, vids);
+    closeModal('confirm-modal');
+    showToast('視頻已刪除');
+    renderTab(CUR_ROLE === 'manager' ? 'pipeline' : 'my-videos');
+  };
+  openModal('confirm-modal');
+}
+
+// ── 備案編輯 ──────────────────────────────────────────
+function openEditTopicModal(anchorName, topicId) {
+  const topics = getData('topics', anchorName);
+  const t = topics.find(x => x.id === topicId);
+  if (!t) return;
+  document.getElementById('topic-modal').querySelector('.modal-title').textContent = '編輯備案';
+  document.getElementById('tm-title').value = t.title || '';
+  document.getElementById('tm-desc').value = t.desc || '';
+  document.getElementById('tm-pri').value = t.priority || '★★ 中';
+  document.getElementById('tm-anchor').value = anchorName;
+  window._editingTopicId = topicId;
+  window._editingTopicAnchor = anchorName;
+  const saveBtn = document.querySelector('#topic-modal .btn-primary');
+  saveBtn.onclick = updateTopic;
+  saveBtn.textContent = '儲存修改';
+  openModal('topic-modal');
+}
+
+function updateTopic() {
+  const anchor = window._editingTopicAnchor;
+  const id = window._editingTopicId;
+  const title = document.getElementById('tm-title').value.trim();
+  if (!title) { showToast('請填寫選題名稱'); return; }
+  const topics = getData('topics', anchor);
+  const idx = topics.findIndex(x => x.id === id);
+  if (idx < 0) { showToast('找不到此備案'); return; }
+  topics[idx] = { ...topics[idx], title, desc: document.getElementById('tm-desc').value, priority: document.getElementById('tm-pri').value };
+  setData('topics', anchor, topics);
+  closeModal('topic-modal');
+  showToast('備案已更新');
+  const saveBtn = document.querySelector('#topic-modal .btn-primary');
+  saveBtn.onclick = saveTopic;
+  saveBtn.textContent = '確認儲存';
+  renderTab(CUR_ROLE === 'manager' ? 'anchors' : 'my-videos');
+}
+
+function deleteTopic(anchorName, topicId) {
+  document.getElementById('confirm-msg').textContent = '確定要刪除這條備案嗎？';
+  document.getElementById('confirm-ok-btn').onclick = () => {
+    const topics = getData('topics', anchorName).filter(t => t.id !== topicId);
+    setData('topics', anchorName, topics);
+    closeModal('confirm-modal');
+    showToast('備案已刪除');
+    renderTab(CUR_ROLE === 'manager' ? 'anchors' : 'my-videos');
+  };
+  openModal('confirm-modal');
+}
+
+// ── 培訓記錄編輯（管理者） ────────────────────────────
+function openEditTrainingModal(id) {
+  const all = getGlobal('training') || [];
+  const t = all.find(x => x.id === id);
+  if (!t) return;
+  document.getElementById('trm-date').value = t.date || '';
+  document.getElementById('trm-type').value = t.type || '形象培訓';
+  document.getElementById('trm-host').value = t.host || '';
+  document.getElementById('trm-target').value = t.target || '';
+  document.getElementById('trm-topic').value = t.topic || '';
+  document.getElementById('trm-notes').value = t.notes || '';
+  document.getElementById('trm-apply').value = t.apply || '';
+  window._editingTrainingId = id;
+  const saveBtn = document.querySelector('#training-modal .btn-primary');
+  saveBtn.onclick = updateTraining;
+  saveBtn.textContent = '儲存修改';
+  openModal('training-modal');
+}
+
+function updateTraining() {
+  const id = window._editingTrainingId;
+  const topic = document.getElementById('trm-topic').value.trim();
+  if (!topic) { showToast('請填寫培訓主題'); return; }
+  const all = getGlobal('training') || [];
+  const idx = all.findIndex(x => x.id === id);
+  if (idx < 0) { showToast('找不到此記錄'); return; }
+  all[idx] = { ...all[idx],
+    date: document.getElementById('trm-date').value,
+    type: document.getElementById('trm-type').value,
+    host: document.getElementById('trm-host').value,
+    target: document.getElementById('trm-target').value,
+    topic, notes: document.getElementById('trm-notes').value,
+    apply: document.getElementById('trm-apply').value,
+  };
+  setGlobal('training', all);
+  closeModal('training-modal');
+  showToast('培訓記錄已更新');
+  const saveBtn = document.querySelector('#training-modal .btn-primary');
+  saveBtn.onclick = saveTraining;
+  saveBtn.textContent = '保存記錄';
+  renderTab('training');
+}
+
+function deleteTraining(id) {
+  document.getElementById('confirm-msg').textContent = '確定要刪除這條培訓記錄嗎？';
+  document.getElementById('confirm-ok-btn').onclick = () => {
+    setGlobal('training', (getGlobal('training')||[]).filter(t => t.id !== id));
+    closeModal('confirm-modal');
+    showToast('培訓記錄已刪除');
+    renderTab('training');
+  };
+  openModal('confirm-modal');
+}
+
+
+</script>
+</body>
+</html>
